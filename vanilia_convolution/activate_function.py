@@ -51,14 +51,13 @@ class Sigmod(Activator):
 class Softmax(Activator):
 
     def forward(self, x):
-        tmp = np.max(x, axis=0)
-        x -= tmp
-        z = np.exp(x)
-        tmp = np.sum(z, axis=0)
-        z /= tmp
-        return z
+        # x is of shape (m*10)
+        log_c = np.max(x, axis=1)[:, np.newaxis]  # (m*10)
+        exps = np.exp(x - log_c)  # exponent will overflow,avoid nan
+        return exps / np.sum(exps, axis=1)[:, np.newaxis]
 
     def backward(self, y, label):
+        """the backward grad is cross entropy and softmax"""
         return y - label
 
 
